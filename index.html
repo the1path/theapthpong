@@ -1,0 +1,227 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>The Path Pong</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.AUTO,
+    width: 1080,
+    height: 740,
+    //width: window.innerWidth,
+    //height: window.innerHeight-50,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            //gravity: { y: 300 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+var paddle1;
+var paddle2;
+var ball;
+var bombs;
+var platforms;
+var player1controls;
+var player2controls;
+var player1score = 0;
+var player2score = 0;
+var gameOver = false;
+var scoreText1;
+var scoreText2;
+var boost = 0;
+var rocket;
+var alien;
+var endText;
+
+var game = new Phaser.Game(config);
+
+function preload ()
+{
+    this.load.image('ball', 'assets/bomb.png');
+    this.load.spritesheet('paddle', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+}
+
+function create ()
+{
+    //  A simple background for our game
+
+    //  The platforms group contains the ground and the 2 ledges we can jump on
+    //platforms = this.physics.add.staticGroup();
+
+    //  Here we create the ground.
+    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    //platforms.create(0, 708, 'ground').setScale(2).refreshBody();
+
+    //  Now let's create some ledges
+    //platforms.create(0, 500, 'ground');
+    //platforms.create(360, 250, 'ground');
+    //platforms.create(0, 100, 'ground');
+
+    // The player and its settings
+    paddle1 = this.physics.add.sprite(50, 370, 'paddle');
+    paddle2 = this.physics.add.sprite(1030, 370, 'paddle');
+
+    paddle1.body.immovable = true;
+    paddle2.body.immovable = true;
+
+    ball = this.physics.add.sprite(540, 370, 'ball');
+
+    //  Physics properties.
+    paddle1.setCollideWorldBounds(true);
+    paddle2.setCollideWorldBounds(true);
+    ball.setCollideWorldBounds(true);
+
+    //  Our player animations, turning, walking left and walking right.
+   /* this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'turn',
+        frames: [ { key: 'dude', frame: 4 } ],
+        frameRate: 20
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+    });
+*/
+    //  Input Events
+    player1controls = {
+            up: this.input.keyboard.addKey('W'),
+            down: this.input.keyboard.addKey('S')
+        };
+    player2controls = this.input.keyboard.createCursorKeys();
+
+    //  The score
+    scoreText1 = this.add.text((config.width / 2) - 70, 16, 'Player 1: 0', { fontSize: '16px', fill: '#fff' });
+    scoreText2 = this.add.text((config.width / 2) - 70, config.height - 32, 'Player 2: 0', { fontSize: '16px', fill: '#fff' });
+
+    //  Collide the player and the fuel with the platforms
+    this.physics.add.collider(paddle1, ball, player1hitBall, null, this);
+    this.physics.add.collider(paddle2, ball, player2hitBall, null, this);
+
+    //  Checks to see if the player overlaps with any of the fuel, if he does call the collectFuel function
+    //this.physics.add.overlap(player, fuels, collectFuel, null, this);
+
+    //  Create ball
+    ball.setVelocity(-300, 0);
+    ball.setBounce(1);
+}
+
+function update ()
+{
+    if (gameOver)
+    {
+        return;
+    }
+
+    if (player1controls.up.isDown) {
+        paddle1.setVelocityY(-300);
+    }
+    else if (player1controls.down.isDown) {
+        paddle1.setVelocityY(300);
+    }
+    else {
+        paddle1.setVelocityY(0);
+    }
+
+    if (player2controls.up.isDown) {
+        paddle2.setVelocityY(-300);
+    }
+    else if (player2controls.down.isDown) {
+        paddle2.setVelocityY(300);
+    }
+    else {
+        paddle2.setVelocityY(0);
+    }
+
+    if (ball.body.position.x >= config.width - ball.width) {
+        ballLost(ball);
+        player2score -= 20;
+        scoreText2.setText('Player 2: ' + player2score);
+    }
+    else if (ball.body.position.x <= 0) {
+        ballLost(ball);
+        player1score -= 20;
+        scoreText1.setText('Player 1: ' + player1score);
+    }
+
+   
+}
+
+function player1hitBall (paddle1, ball)
+{
+    //this.physics.pause();
+
+    if( player1score > 90 ){
+        endText =  this.add.text((config.width / 2) - 160, config.height / 2 , 'Player 2 is such a loser', { fontSize: '20px', fill: '#fff' });
+        this.physics.pause();
+        gameOver = true;
+    } else {
+        ball.setVelocityY((Math.random() * 50) + paddle1.body.velocity.y);
+        ball.body.velocity.x += (0.1) * ball.body.velocity.x;
+        player1score += 10;
+        scoreText1.setText('Player 1: ' + player1score);
+    }
+}
+
+function player2hitBall (paddle2, ball)
+{
+    //this.physics.pause();
+    if( player2score > 90 ){
+        endText =  this.add.text((config.width / 2) - 160, config.height / 2, 'Player 1 is such a loser', { fontSize: '20px', fill: '#fff' });
+        this.physics.pause();
+        gameOver = true;
+    } else {
+        ball.setVelocityY((Math.random() * 50) + paddle2.body.velocity.y);
+        ball.body.velocity.x += (0.1) * ball.body.velocity.x;
+        player2score += 10;
+        scoreText2.setText('Player 2 : ' + player2score);
+    }
+}
+
+function ballLost(ball) {
+
+    var randomNumber = Phaser.Math.Between(-1,1);
+
+    if (randomNumber == 0)
+    {
+        randomNumber = 1;
+    }
+
+    //reset ball with random trajectory
+    ball.body.reset(config.width/2, config.height/2);
+    ball.setVelocity(randomNumber*300,Phaser.Math.Between(-150,150));
+
+    //console.log(config.width);
+}
+
+</script>
+
+</body>
+</html>
