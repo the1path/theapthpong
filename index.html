@@ -37,8 +37,6 @@ var config = {
 var paddle1;
 var paddle2;
 var ball;
-var bombs;
-var platforms;
 var player1controls;
 var player2controls;
 var player1score = 0;
@@ -46,9 +44,6 @@ var player2score = 0;
 var gameOver = false;
 var scoreText1;
 var scoreText2;
-var boost = 0;
-var rocket;
-var alien;
 var endText;
 
 var game = new Phaser.Game(config);
@@ -61,19 +56,6 @@ function preload ()
 
 function create ()
 {
-    //  A simple background for our game
-
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    //platforms = this.physics.add.staticGroup();
-
-    //  Here we create the ground.
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    //platforms.create(0, 708, 'ground').setScale(2).refreshBody();
-
-    //  Now let's create some ledges
-    //platforms.create(0, 500, 'ground');
-    //platforms.create(360, 250, 'ground');
-    //platforms.create(0, 100, 'ground');
 
     // The player and its settings
     paddle1 = this.physics.add.sprite(50, 370, 'paddle');
